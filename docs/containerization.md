@@ -60,12 +60,20 @@ az ad sp create-for-rbac \
 ```
 
 #### GitHub Secretsの設定
-以下のシークレットをGitHubリポジトリに設定：
+以下の1つのシークレットをGitHubリポジトリに設定：
 
-- `AZURE_CLIENT_ID`: サービスプリンシパルのクライアントID
-- `AZURE_CLIENT_SECRET`: サービスプリンシパルのクライアントシークレット
-- `AZURE_TENANT_ID`: AzureテナントID  
-- `AZURE_SUBSCRIPTION_ID`: AzureサブスクリプションID
+- **Name**: `AZURE_CREDENTIALS`
+- **Value**: サービスプリンシパル作成コマンドの出力JSON全体
+
+例：
+```json
+{
+  "clientId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "clientSecret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "subscriptionId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", 
+  "tenantId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+}
+```
 
 ### 4. デプロイの実行
 
