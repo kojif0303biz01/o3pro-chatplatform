@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: o3pro-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - API_KEY=${API_KEY}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME}
+      - COSMOS_DB_ENDPOINT=${COSMOS_DB_ENDPOINT}
+      - COSMOS_DB_API_KEY=${COSMOS_DB_API_KEY}
+      - COSMOS_DB_DATABASE_NAME=${COSMOS_DB_DATABASE_NAME}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - o3pro-network
+
+  functions:
+    build:
+      context: .
+      dockerfile: apps/functions/Dockerfile
+    container_name: o3pro-functions
+    environment:
+      - AzureWebJobsStorage=${AzureWebJobsStorage}
+      - FUNCTIONS_WORKER_RUNTIME=python
+      - COSMOS_DB_ENDPOINT=${COSMOS_DB_ENDPOINT}
+      - COSMOS_DB_API_KEY=${COSMOS_DB_API_KEY}
+      - ServiceBusConnection=${ServiceBusConnection}
+    depends_on:
+      - api
+    networks:
+      - o3pro-network
+
+  # ローカル開発用のAzurite（Azure Storage Emulator）
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: o3pro-azurite
+    ports:
+      - "10000:10000"  # Blob
+      - "10001:10001"  # Queue
+      - "10002:10002"  # Table
+    networks:
+      - o3pro-network
+
+networks:
+  o3pro-network:
+    driver: bridge

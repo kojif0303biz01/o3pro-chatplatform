@@ -1,0 +1,64 @@
+apiVersion: apps.azure.com/v1
+kind: ContainerApp
+metadata:
+  name: o3pro-functions
+  namespace: env-poc-apps
+spec:
+  configuration:
+    activeRevisionsMode: Single
+    dapr:
+      enabled: true
+      appId: o3pro-functions
+      appPort: 80
+      appProtocol: http
+    secrets:
+      - name: cosmos-db-key
+        value: "ref:keyvault:cosmos-db-key"
+      - name: servicebus-connection
+        value: "ref:keyvault:servicebus-connection"
+    registries:
+      - server: acrpocapps.azurecr.io
+        username: acrpocapps
+        passwordSecretRef: acr-password
+  template:
+    containers:
+      - name: functions
+        image: acrpocapps.azurecr.io/o3pro-functions:latest
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        env:
+          - name: AzureWebJobsStorage
+            value: "DefaultEndpointsProtocol=https;AccountName=stpocapps;AccountKey=xxx"
+          - name: FUNCTIONS_WORKER_RUNTIME
+            value: "python"
+          - name: COSMOS_DB_ENDPOINT
+            value: "https://your-cosmos.documents.azure.com:443/"
+          - name: COSMOS_DB_API_KEY
+            secretRef: cosmos-db-key
+          - name: ServiceBusConnection
+            secretRef: servicebus-connection
+          - name: WEBSITE_SITE_NAME
+            value: "o3pro-functions"
+        probes:
+          - type: liveness
+            httpGet:
+              path: /api/functions/health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+    scale:
+      minReplicas: 0
+      maxReplicas: 5
+      rules:
+        - name: queue-scaling
+          azureQueue:
+            queueName: job-status-queue
+            queueLength: 5
+            auth:
+              - secretRef: servicebus-connection
+                triggerParameter: connection
+        - name: http-scaling
+          http:
+            metadata:
+              concurrentRequests: "10"

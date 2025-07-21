@@ -1,8 +1,8 @@
-# Requirements Document - O3-Pro Chat Platform Phase 2
+# Requirements Document - O3-Pro Chat Platform
 
 ## プロジェクト概要
 
-Azure OpenAI o3-proを使用したWebベースチャットプラットフォーム。React + FastAPI + Azure Cosmos DBによるモダンアーキテクチャで構築された、完全動作するチャットアプリケーション。
+Azure OpenAI o3-proを使用したWebベースチャットプラットフォーム。React + FastAPI + Azure Cosmos DBによるモダンアーキテクチャで構築され、Azure Container Apps + Azure Functionsによるクラウドネイティブ本番環境への展開を目指すエンタープライズ対応チャットアプリケーション。
 
 ## Phase 2の成果
 
@@ -58,10 +58,14 @@ Azure OpenAI o3-proを使用したWebベースチャットプラットフォー�
 - **Azure OpenAI o3-pro** - 最新AIモデル
 - **3モードサポート** - reasoning/streaming/background
 
-### インフラ・運用
-- **Azure Container Apps** - コンテナ実行環境
-- **Azure Static Web Apps** - フロントエンドホスティング
+### インフラ・運用（Phase 3拡張）
+- **Azure Container Apps Environment** - 統合コンテナ実行環境 (env-poc-apps)
+- **Azure Functions on Container Apps** - サーバーレス処理統合
+- **Azure Static Web Apps** - フロントエンドホスティング  
+- **Azure Container Registry** - プライベートコンテナイメージ管理
 - **Azure Key Vault** - 機密情報管理
+- **Azure Monitor + Application Insights** - 統合監視・ログ管理
+- **Azure Log Analytics** - 分析・アラート
 
 ## アーキテクチャ設計
 
@@ -72,13 +76,28 @@ Frontend (React)  ←→  Backend (FastAPI)  ←→  Azure OpenAI o3-pro
   Zustand Store         Cosmos DB
 ```
 
-### 将来構成（Phase 3予定）
+### Phase 3構成（Azure Container Apps展開）
 ```
-Frontend (React)  ←→  Backend (FastAPI)  ←→  Azure OpenAI o3-pro
-      ↓             WebSocket/REST           ↓
-  Zustand Store    ←→  Socket.IO      ←→  Background Jobs
-      ↓                      ↓                ↓
-  Local Cache           Cosmos DB         Job Queue
+┌────────────────────────────────────────────────────────────────┐
+│                   Azure Container Apps Environment             │
+│  (env-poc-apps)                                               │
+│                                                               │
+│  ┌─────────────────┐    ┌──────────────────────────────────┐  │
+│  │ Static Web App  │    │     Container Apps               │  │
+│  │                 │    │                                  │  │
+│  │ Frontend        │◄──►│ FastAPI Backend                  │  │
+│  │ (React+TS)      │    │ + Azure Functions Integration    │  │
+│  └─────────────────┘    │ + WebSocket (Socket.IO)          │  │
+│                         │ + Background Jobs                │  │
+│                         └──────────────┬───────────────────┘  │
+└─────────────────────────────────────────┼───────────────────────┘
+                                          │
+                 ┌────────────────────────┼────────────────────────┐
+                 │                        ▼                        │
+            ┌────────────┐         ┌─────────────────┐         ┌──────────────┐
+            │ Cosmos DB  │         │  Azure OpenAI   │         │  Key Vault   │
+            │ (履歴管理)  │         │    o3-pro       │         │  (機密管理)   │
+            └────────────┘         └─────────────────┘         └──────────────┘
 ```
 
 ## 機能要件の達成状況
@@ -91,13 +110,23 @@ Frontend (React)  ←→  Backend (FastAPI)  ←→  Azure OpenAI o3-pro
 5. **レスポンシブUI** - デスクトップ・モバイル対応
 6. **エラー処理** - 統一されたエラーハンドリング
 
-### 🔄 Phase 3実装予定機能
-1. **WebSocketストリーミング** - リアルタイム通信
-2. **バックグラウンドジョブ** - 長時間処理の進捗表示
-3. **ユーザー認証** - Azure AD B2C連携
-4. **マルチユーザー対応** - ユーザー管理・権限制御
-5. **ファイルアップロード** - 文書・画像対応
-6. **分析ダッシュボード** - 使用状況・パフォーマンス
+### 🔄 Phase 3実装機能（Azure Container Apps展開）
+
+#### 3-1. インフラ・デプロイ（優先度：最高）
+1. **Azure Container Apps環境構築** - env-poc-apps環境での統合デプロイ
+2. **コンテナ化** - FastAPI + React アプリケーションのコンテナ化
+3. **Azure Functions統合** - Container Apps上でのサーバーレス処理
+4. **CI/CDパイプライン** - GitHub Actions自動デプロイ
+5. **環境分離** - 開発・ステージング・本番環境
+6. **セキュリティ強化** - Managed Identity + Key Vault統合
+
+#### 3-2. 機能拡張（Phase 4以降）
+7. **WebSocketストリーミング** - リアルタイム通信
+8. **バックグラウンドジョブ** - 長時間処理の進捗表示  
+9. **ユーザー認証** - Azure AD B2C連携
+10. **マルチユーザー対応** - ユーザー管理・権限制御
+11. **ファイルアップロード** - 文書・画像対応
+12. **分析ダッシュボード** - 使用状況・パフォーマンス
 
 ## 非機能要件の達成状況
 
@@ -138,33 +167,84 @@ Frontend (React)  ←→  Backend (FastAPI)  ←→  Azure OpenAI o3-pro
 - **開発体験向上** → TypeScript/Vite/Hot Reload
 - **本番運用準備** → Docker化/環境分離
 
-## Phase 3への移行計画
+## Phase 3 実装計画（Azure Container Apps展開）
 
-### 優先度高（即座に着手）
-1. **WebSocketストリーミング** - リアルタイム体験向上
-2. **バックグラウンドジョブUI** - 長時間処理の可視化
+### フェーズ3-1: インフラ構築（1-2週間）
 
-### 優先度中（数週間内）
-3. **ユーザー認証システム** - Azure AD B2C統合
-4. **マルチユーザー対応** - セッション分離
+#### Step 1: 環境準備
+- **Azure Container Apps Environment作成** - env-poc-apps
+- **Container Registry設定** - プライベートレジストリ
+- **Key Vault統合** - 機密情報管理
+- **Managed Identity設定** - セキュア認証
 
-### 優先度低（将来的）
-5. **ファイルアップロード** - マルチメディア対応
-6. **分析機能** - 使用状況ダッシュボード
+#### Step 2: アプリケーションコンテナ化
+- **FastAPI Dockerfile作成** - 本番用最適化
+- **React ビルド最適化** - Static Web Apps準備
+- **環境変数管理** - Container Apps設定
+- **ヘルスチェック実装** - 可用性監視
 
-## リスクと対策（更新）
+#### Step 3: デプロイ・CI/CD
+- **Container Apps デプロイ** - FastAPIバックエンド
+- **Static Web Apps デプロイ** - Reactフロントエンド
+- **GitHub Actions** - 自動ビルド・デプロイ
+- **環境別設定** - 開発・本番分離
 
-| リスク | 現在の状況 | 対策 |
-|--------|------------|------|
-| WebSocket実装の複雑性 | 基盤完成済み | Socket.IO使用で実装簡素化 |
-| ユーザー認証の複雑性 | 未着手 | Azure AD B2C標準連携 |
-| パフォーマンス問題 | 良好 | 継続的モニタリング |
-| セキュリティ課題 | APIキーレベル | 段階的にAzure AD移行 |
+#### Step 4: 監視・運用
+- **Application Insights** - パフォーマンス監視
+- **Log Analytics** - ログ集約・分析
+- **アラート設定** - 障害検知・通知
+- **スケーリング設定** - 自動スケール
+
+### フェーズ3-2: Azure Functions統合（2-3週間）
+- **Functions on Container Apps** - サーバーレス処理統合
+- **Event-driven処理** - 非同期ジョブ実行
+- **KEDA統合** - イベント駆動スケーリング
+- **Dapr統合** - マイクロサービス連携
+
+### 将来フェーズ（Phase 4以降）
+- **WebSocketストリーミング** - リアルタイム体験向上
+- **ユーザー認証システム** - Azure AD B2C統合  
+- **マルチユーザー対応** - セッション分離
+- **ファイルアップロード** - マルチメディア対応
+
+## Phase 3 リスクと対策
+
+| リスク | 影響度 | 対策 | 実装時期 |
+|--------|--------|------|----------|
+| **Container化の複雑性** | 高 | Dockerfile最適化・段階的移行 | Phase 3-1 |
+| **Azure Container Apps学習コスト** | 中 | Microsoft Learn活用・POC先行 | Phase 3-1 |
+| **CI/CDパイプライン構築** | 中 | GitHub Actions テンプレート活用 | Phase 3-1 |
+| **環境変数・機密管理** | 高 | Key Vault + Managed Identity | Phase 3-1 |
+| **コスト増加** | 中 | Consumption プラン・リソース監視 | Phase 3-1 |
+| **パフォーマンス劣化** | 中 | Container最適化・監視強化 | Phase 3-1 |
+| **Functions統合複雑性** | 中 | 段階的統合・既存API維持 | Phase 3-2 |
+| **ネットワーク設定** | 低 | VNet統合・Private Endpoint | Phase 3-2 |
+
+## Phase 3 成功基準
+
+### ✅ 必須達成事項
+1. **Azure Container Apps環境** - env-poc-apps での安定稼働
+2. **コンテナ化完了** - FastAPI + React の完全コンテナ化
+3. **CI/CDパイプライン** - GitHub Actions 自動デプロイ
+4. **セキュリティ強化** - Key Vault + Managed Identity
+5. **監視・運用** - Application Insights + Log Analytics
+6. **スケーラビリティ** - 自動スケール・負荷対応
+
+### 📊 評価指標
+- **デプロイ時間**: < 5分（自動化）
+- **アプリケーション起動時間**: < 30秒
+- **可用性**: 99.9%（SLA準拠）
+- **レスポンス時間**: < 2秒（P95）
+- **コスト効率**: 現行比+20%以内
 
 ## 更新履歴
 
+- **2025-07-21**: Phase 3 Azure Container Apps展開要件に更新
+  - Azure Container Apps + Azure Functions統合計画
+  - env-poc-apps環境での実装計画
+  - インフラ構築・CI/CD・監視の詳細化
+  - リスク分析・成功基準の明確化
 - **2025-07-21**: Phase 2完了版に更新
   - 全要件達成状況を反映
   - 技術的課題解決を記録
-  - Phase 3計画を追加
   - 成功基準の達成を確認

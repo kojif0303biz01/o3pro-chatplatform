@@ -1,0 +1,8 @@
+azure-functions==1.18.0
+azure-functions-durable==1.2.6
+azure-cosmos==4.5.1
+azure-storage-blob==12.19.0
+azure-servicebus==7.11.4
+loguru==0.7.2
+pydantic==2.5.3
+python-dotenv==1.0.0

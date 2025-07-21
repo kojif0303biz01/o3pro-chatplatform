@@ -1,0 +1,88 @@
+apiVersion: apps.azure.com/v1
+kind: ContainerApp
+metadata:
+  name: o3pro-api
+  namespace: env-poc-apps
+spec:
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: true
+      targetPort: 8000
+      transport: http
+      corsPolicy:
+        allowedOrigins:
+          - "http://localhost:5173"
+          - "http://localhost:5174"
+          - "https://*.azurestaticapps.net"
+        allowedMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "OPTIONS"
+        allowedHeaders:
+          - "*"
+        allowCredentials: true
+    secrets:
+      - name: api-key
+        value: "ref:keyvault:api-key"
+      - name: azure-openai-key
+        value: "ref:keyvault:azure-openai-key"
+      - name: cosmos-db-key
+        value: "ref:keyvault:cosmos-db-key"
+    registries:
+      - server: acrpocapps.azurecr.io
+        username: acrpocapps
+        passwordSecretRef: acr-password
+  template:
+    containers:
+      - name: api
+        image: acrpocapps.azurecr.io/o3pro-api:latest
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        env:
+          - name: ENVIRONMENT
+            value: production
+          - name: PORT
+            value: "8000"
+          - name: WORKERS
+            value: "2"
+          - name: API_KEY
+            secretRef: api-key
+          - name: AZURE_OPENAI_API_KEY
+            secretRef: azure-openai-key
+          - name: AZURE_OPENAI_ENDPOINT
+            value: "https://your-openai.openai.azure.com/"
+          - name: AZURE_OPENAI_DEPLOYMENT_NAME
+            value: "O3-pro"
+          - name: COSMOS_DB_ENDPOINT
+            value: "https://your-cosmos.documents.azure.com:443/"
+          - name: COSMOS_DB_API_KEY
+            secretRef: cosmos-db-key
+          - name: COSMOS_DB_DATABASE_NAME
+            value: "chat_history_db"
+          - name: LOG_LEVEL
+            value: "INFO"
+        probes:
+          - type: liveness
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          - type: readiness
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+    scale:
+      minReplicas: 0
+      maxReplicas: 1
+      rules:
+        - name: http-scaling
+          http:
+            metadata:
+              concurrentRequests: "100"  # 1インスタンスなので増やす

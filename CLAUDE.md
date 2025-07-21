@@ -14,7 +14,10 @@ o3-proの各モードを切り替えて使えるチャットボットを作成�
 
 - phase2
  チャットをStatic Web Appで作成する。
+
  azure container app+azure functionで作成し、チャット履歴は、conmosDBに保存する。
+
+
 
 - 主要なアーキテクチャの決定事項とパターン
 AzureのLLMモデル、OpenAI,Azure Foundry,Azure project、Hubなど
