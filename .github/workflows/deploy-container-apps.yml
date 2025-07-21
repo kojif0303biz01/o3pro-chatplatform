@@ -30,22 +30,39 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # 最初にデバッグ情報を出力
+    - name: Debug Environment and Secrets
+      run: |
+        echo "=== GitHub Actions Environment Debug ==="
+        echo "Runner OS: $RUNNER_OS"
+        echo "GitHub Event: $GITHUB_EVENT_NAME"
+        echo "GitHub Ref: $GITHUB_REF"
+        echo "GitHub Actor: $GITHUB_ACTOR"
+        echo ""
+        echo "=== Checking GitHub Secrets ==="
+        echo "AZURE_CLIENT_ID exists: ${{ secrets.AZURE_CLIENT_ID != '' && 'true' || 'false' }}"
+        echo "AZURE_TENANT_ID exists: ${{ secrets.AZURE_TENANT_ID != '' && 'true' || 'false' }}"
+        echo "AZURE_SUBSCRIPTION_ID exists: ${{ secrets.AZURE_SUBSCRIPTION_ID != '' && 'true' || 'false' }}"
+        echo "AZURE_CLIENT_SECRET exists: ${{ secrets.AZURE_CLIENT_SECRET != '' && 'true' || 'false' }}"
+        echo ""
+        echo "=== Environment Variables Length Check ==="
+        echo "CLIENT_ID length: ${#CLIENT_ID}"
+        echo "TENANT_ID length: ${#TENANT_ID}"
+        echo "SUBSCRIPTION_ID length: ${#SUBSCRIPTION_ID}"
+        echo "CLIENT_SECRET length: ${#CLIENT_SECRET}"
+        echo ""
+        echo "=== First 8 chars (for verification) ==="
+        echo "CLIENT_ID starts with: ${CLIENT_ID:0:8}..."
+        echo "TENANT_ID starts with: ${TENANT_ID:0:8}..."
+        echo "SUBSCRIPTION_ID starts with: ${SUBSCRIPTION_ID:0:8}..."
+      env:
+        CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-
-    # GitHub Secretsの確認（デバッグ用）
-    - name: Debug GitHub Secrets
-      run: |
-        echo "Checking GitHub Secrets availability..."
-        echo "AZURE_CLIENT_ID exists: ${{ secrets.AZURE_CLIENT_ID != '' }}"
-        echo "AZURE_TENANT_ID exists: ${{ secrets.AZURE_TENANT_ID != '' }}"
-        echo "AZURE_SUBSCRIPTION_ID exists: ${{ secrets.AZURE_SUBSCRIPTION_ID != '' }}"
-        echo "AZURE_CLIENT_SECRET exists: ${{ secrets.AZURE_CLIENT_SECRET != '' }}"
-        echo "AZURE_CLIENT_ID length: ${#AZURE_CLIENT_ID}"
-        echo "AZURE_TENANT_ID length: ${#AZURE_TENANT_ID}"
-      env:
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
     - name: Azure Login
       uses: azure/login@v2
@@ -54,6 +71,46 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      continue-on-error: true
+      id: azure-login
+
+    # Azure Loginが失敗した場合の詳細確認
+    - name: Manual Azure Login Test
+      if: steps.azure-login.outcome == 'failure'
+      run: |
+        echo "=== Azure Login failed, trying manual login ==="
+        echo "Installing Azure CLI..."
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        
+        echo "Azure CLI version:"
+        az --version
+        
+        echo "Trying service principal login..."
+        az login --service-principal \
+          --username "$CLIENT_ID" \
+          --password "$CLIENT_SECRET" \
+          --tenant "$TENANT_ID" \
+          --output table
+        
+        echo "Setting subscription..."
+        az account set --subscription "$SUBSCRIPTION_ID"
+        
+        echo "Verifying access to resource group..."
+        az group show --name "$RESOURCE_GROUP" --output table
+      env:
+        CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
+
+    # Azure Loginが成功した場合の継続確認
+    - name: Verify Azure Authentication
+      if: steps.azure-login.outcome != 'failure'
+      run: |
+        echo "=== Azure Login successful, verifying access ==="
+        az account show --output table
+        az group show --name "$RESOURCE_GROUP" --output table
 
     # Container Registry作成（存在しない場合）
     - name: Create Azure Container Registry
