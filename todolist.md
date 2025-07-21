@@ -185,7 +185,40 @@
 - [x] エラー表示の適切さ
 - [x] レスポンシブデザイン確認
 
-## Phase 3: 次期開発計画
+## Phase 3: Azure Container Apps展開計画
+
+### Container Apps環境構築 ✅ **完了**
+- [x] Azure Container Apps Environment作成 (env-poc-apps)
+- [x] プロジェクト構造準備・要件定義更新
+- [x] 設計文書更新・アーキテクチャ策定
+
+### CI/CD パイプライン構築 🔄 **実装中**
+- [x] GitHub Actionsワークフロー作成 
+- [x] Docker化戦略・Dockerfile作成
+- [x] Azure認証設定・サービスプリンシパル作成
+- [x] GitHub Actions認証エラー解決 (2025-07-21)
+  - [x] ワークフロー環境変数参照エラー修正
+  - [x] デバッグ機能追加・トラブルシューティングガイド作成
+  - [x] 継続監視体制確立・Issues管理開始
+- [ ] Container Registry (ACR) 設定完了
+- [ ] Container Appsデプロイテスト
+
+### セキュリティ・機密管理
+- [ ] Key Vault + Managed Identity設定
+- [ ] 環境変数のKey Vault統合
+- [ ] セキュアな機密情報管理
+
+### 監視・運用基盤
+- [ ] Application Insights統合
+- [ ] Log Analytics設定
+- [ ] アラート・ダッシュボード構築
+
+### Azure Functions統合
+- [ ] Functions on Container Apps設定
+- [ ] KEDA + Daprスケーリング設定
+- [ ] バックグラウンドジョブ処理統合
+
+## Phase 4: 機能拡張計画
 
 ### WebSocketストリーミング実装 🔄 **準備完了**
 - [ ] WebSocketサーバー有効化
@@ -245,6 +278,11 @@
 
 ## 更新履歴
 
+- **2025-07-21**: Phase 3 Azure Container Apps展開進捗反映
+  - GitHub Actions認証問題解決の記録追加
+  - CI/CDパイプライン実装状況更新
+  - Container Apps環境構築完了記録
+  - 継続監視体制とIssues管理開始
 - **2025-07-21**: Phase 2完了版に全面更新
   - 全タスクの完了状況を反映
   - 技術的課題解決を詳細記録

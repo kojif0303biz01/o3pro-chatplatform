@@ -821,8 +821,56 @@ tests/
    - Secretsのruntime注入
    - HTTPS Only + TLS 1.2+
 
+## Phase 3 実装上の技術課題とその解決
+
+### 解決済みCI/CD課題
+
+#### GitHub Actions Azure認証エラー (2025-07-21解決)
+
+**問題概要**:
+- ワークフロー内でAzure認証が失敗: "Using auth-type: SERVICE_PRINCIPAL. Not all values are present"
+- CI/CDパイプライン全体が停止状態
+
+**技術的根本原因**:
+```yaml
+# 問題のあったコード
+env:
+  RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}  # 存在しない環境変数参照
+```
+
+**解決実装**:
+```yaml
+# 修正後のコード
+env:
+  RESOURCE_GROUP: rg-poc-apps  # 直接値指定
+```
+
+**対策として追加した機能**:
+1. **デバッグ機能強化**:
+   - GitHub Secretsの存在確認ステップ
+   - 環境変数の長さと部分値チェック
+   - Azure Login失敗時の詳細調査ステップ
+
+2. **エラーハンドリング**:
+   - `continue-on-error: true`によるワークフロー継続
+   - 手動Azure CLI認証テスト
+
+3. **ドキュメント整備**:
+   - `/docs/github-auth-troubleshooting.md`作成
+   - `/docs/issues-log.md`による継続的課題管理
+
+**ファイル**: `.github/workflows/deploy-container-apps.yml`
+
+**継続監視項目**:
+- GitHub Actions認証成功率
+- デバッグ情報の定期確認  
+- 環境変数参照の正確性検証
+
 ## 更新履歴
 
+- **2025-07-21**: GitHub Actions認証問題解決の記録追加
+  - CI/CD課題の技術的詳細と解決プロセス記録
+  - デバッグ機能とエラーハンドリング強化の実装記録
 - **2025-07-21**: Phase 3 Azure Container Apps展開設計に大幅更新
   - Container Apps + Functions統合設計詳細化
   - CI/CDパイプライン・コンテナ化戦略

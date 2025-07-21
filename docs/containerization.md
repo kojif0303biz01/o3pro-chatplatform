@@ -133,6 +133,26 @@ az containerapp logs show \
 
 ## トラブルシューティング
 
+### GitHub Actions認証エラー (解決済み)
+**問題**: "Using auth-type: SERVICE_PRINCIPAL. Not all values are present"
+
+**原因**: ワークフロー内の環境変数参照エラー
+- `${{ env.RESOURCE_GROUP }}`が存在しない環境変数を参照していた
+
+**解決方法**: 
+```yaml
+# 修正前（エラー）
+RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
+
+# 修正後（正常）
+RESOURCE_GROUP: rg-poc-apps
+```
+
+**対策**: 
+- デバッグ機能を追加してGitHub Secretsの状態確認
+- 環境変数参照の正確性検証
+- 詳細なトラブルシューティングガイド作成
+
 ### イメージプルエラー
 ```bash
 # ACR認証情報の確認

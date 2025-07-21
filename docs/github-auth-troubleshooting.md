@@ -1,7 +1,24 @@
 # GitHub Actions Azure認証トラブルシューティングガイド
 
-## 現在の問題
+## 問題履歴と解決策
+
+### 発生した問題
 GitHub ActionsでAzure認証が失敗する: "Using auth-type: SERVICE_PRINCIPAL. Not all values are present"
+
+### 調査結果
+1. **初期の問題**: サービスプリンシパル設定とGitHub Secretsの設定に関する疑い
+2. **デバッグ情報追加**: 詳細なログ出力機能を実装
+3. **根本原因判明**: ワークフロー内の環境変数参照エラー
+   - `${{ env.RESOURCE_GROUP }}` が存在しない環境変数を参照
+   - 結果として、Azure CLIコマンドが正しい値を取得できない状態
+
+### 修正内容
+- 環境変数参照を `${{ env.RESOURCE_GROUP }}` から `rg-poc-apps` に修正
+- デバッグ機能を追加して問題の特定を容易化
+
+### Issue追跡
+- この問題はGitHubリポジトリのIssueとして記録
+- 継続的な監視とテストが必要
 
 ## 解決手順
 

@@ -237,8 +237,31 @@ Frontend (React)  ←→  Backend (FastAPI)  ←→  Azure OpenAI o3-pro
 - **レスポンス時間**: < 2秒（P95）
 - **コスト効率**: 現行比+20%以内
 
+## Phase 3 実装課題とその解決
+
+### 解決済み技術課題
+
+#### GitHub Actions Azure認証エラー (2025-07-21解決)
+**問題**: CI/CDパイプラインでAzure認証が失敗 - "Using auth-type: SERVICE_PRINCIPAL. Not all values are present"
+
+**根本原因**: ワークフロー内の環境変数参照エラー
+- `${{ env.RESOURCE_GROUP }}`が存在しない環境変数を参照
+- Azure CLIが正しい値を取得できない状態
+
+**解決策**: 
+- 環境変数参照を`rg-poc-apps`に直接指定
+- デバッグ機能追加によるGitHub Secretsの状態確認体制確立
+- 詳細なトラブルシューティングガイド作成
+
+**実装**: `/home/koji/wsl/claude-code/conect01/.github/workflows/deploy-container-apps.yml`修正完了
+
+**継続監視**: GitHub Actions実行時の認証成功率・デバッグ情報の定期確認
+
 ## 更新履歴
 
+- **2025-07-21**: GitHub Actions認証問題解決と実装課題追加
+  - 認証エラーの根本原因と解決策を記録
+  - 継続監視体制とデバッグ機能の実装記録
 - **2025-07-21**: Phase 3 Azure Container Apps展開要件に更新
   - Azure Container Apps + Azure Functions統合計画
   - env-poc-apps環境での実装計画
