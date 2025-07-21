@@ -33,10 +33,9 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Azure Login
-      uses: azure/login@v2
+      uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-        enable-AzPSSession: true
 
     # Container Registry作成（存在しない場合）
     - name: Create Azure Container Registry
