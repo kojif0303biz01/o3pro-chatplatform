@@ -102,7 +102,7 @@ jobs:
         CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
+        RESOURCE_GROUP: rg-poc-apps
 
     # Azure Loginが成功した場合の継続確認
     - name: Verify Azure Authentication
