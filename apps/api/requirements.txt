@@ -1,0 +1,35 @@
+# FastAPI and Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+python-socketio==5.11.0
+python-jose[cryptography]==3.3.0
+
+# Azure OpenAI (from existing requirements)
+openai>=1.5.0
+azure-identity>=1.15.0
+python-dotenv>=1.0.0
+
+# Async support
+aiofiles==23.2.1
+httpx==0.26.0
+
+# Data validation
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# CORS and Security
+# CORSはFastAPIに組み込み済み
+
+# Development tools
+pytest==7.4.4
+pytest-asyncio==0.23.3
+black==23.12.1
+isort==5.13.2
+mypy==1.8.0
+
+# Logging
+loguru==0.7.2
+
+# Cosmos DB dependencies
+dataclasses-json==0.6.7

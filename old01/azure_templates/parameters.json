@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "cosmosAccountName": {
+      "value": "cosmos-chat-dev"
+    },
+    "location": {
+      "value": "japaneast"
+    },
+    "databaseName": {
+      "value": "chat_history_db"
+    },
+    "conversationsContainerName": {
+      "value": "conversations"
+    },
+    "messagesContainerName": {
+      "value": "messages"
+    },
+    "capacityMode": {
+      "value": "Serverless"
+    },
+    "throughput": {
+      "value": 400
+    },
+    "enableMultipleWriteLocations": {
+      "value": false
+    },
+    "enableAutomaticFailover": {
+      "value": false
+    },
+    "consistencyLevel": {
+      "value": "Session"
+    }
+  }
+}

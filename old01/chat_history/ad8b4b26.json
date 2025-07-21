@@ -1,0 +1,24 @@
+{
+  "session_info": {
+    "id": "ad8b4b26",
+    "title": "チャットセッション",
+    "mode": "reasoning",
+    "created_at": "2025-07-20T16:24:23.239294",
+    "updated_at": "2025-07-20T16:24:24.224192",
+    "message_count": 2
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "AI Agentについて教えてください",
+      "timestamp": "2025-07-20T16:24:23.239706",
+      "metadata": {}
+    },
+    {
+      "role": "user",
+      "content": "もう一つの質問です",
+      "timestamp": "2025-07-20T16:24:24.224179",
+      "metadata": {}
+    }
+  ]
+}

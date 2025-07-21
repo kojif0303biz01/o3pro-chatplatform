@@ -1,0 +1,18 @@
+{
+  "session_info": {
+    "id": "939b8049",
+    "title": "チャットセッション",
+    "mode": "reasoning",
+    "created_at": "2025-07-20T15:50:49.817739",
+    "updated_at": "2025-07-20T15:50:49.822295",
+    "message_count": 1
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "こんにちは、簡単な挨拶をお願いします",
+      "timestamp": "2025-07-20T15:50:49.822275",
+      "metadata": {}
+    }
+  ]
+}

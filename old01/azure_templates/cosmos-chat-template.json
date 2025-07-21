@@ -1,0 +1,301 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Cosmos History モジュール用 Azure Cosmos DB インフラストラクチャ"
+  },
+  "parameters": {
+    "cosmosAccountName": {
+      "type": "string",
+      "defaultValue": "[concat('cosmos-chat-', uniqueString(resourceGroup().id))]",
+      "metadata": {
+        "description": "Cosmos DB アカウント名（グローバルで一意）"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "リソースの場所"
+      }
+    },
+    "databaseName": {
+      "type": "string",
+      "defaultValue": "chat_history_db",
+      "metadata": {
+        "description": "データベース名"
+      }
+    },
+    "conversationsContainerName": {
+      "type": "string",
+      "defaultValue": "conversations",
+      "metadata": {
+        "description": "会話コンテナー名"
+      }
+    },
+    "messagesContainerName": {
+      "type": "string",
+      "defaultValue": "messages",
+      "metadata": {
+        "description": "メッセージコンテナー名"
+      }
+    },
+    "capacityMode": {
+      "type": "string",
+      "defaultValue": "Serverless",
+      "allowedValues": [
+        "Serverless",
+        "Provisioned"
+      ],
+      "metadata": {
+        "description": "容量モード（サーバーレス推奨）"
+      }
+    },
+    "throughput": {
+      "type": "int",
+      "defaultValue": 400,
+      "minValue": 400,
+      "maxValue": 1000000,
+      "metadata": {
+        "description": "プロビジョニング済みスループット（RU/s）"
+      }
+    },
+    "enableMultipleWriteLocations": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "マルチリージョン書き込み有効化"
+      }
+    },
+    "enableAutomaticFailover": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "自動フェールオーバー有効化"
+      }
+    },
+    "consistencyLevel": {
+      "type": "string",
+      "defaultValue": "Session",
+      "allowedValues": [
+        "Strong",
+        "Session",
+        "BoundedStaleness",
+        "ConsistentPrefix",
+        "Eventual"
+      ],
+      "metadata": {
+        "description": "一貫性レベル"
+      }
+    },
+    "maxStalenessPrefix": {
+      "type": "int",
+      "defaultValue": 100000,
+      "metadata": {
+        "description": "境界のある陳腐化の最大プレフィックス"
+      }
+    },
+    "maxIntervalInSeconds": {
+      "type": "int",
+      "defaultValue": 300,
+      "metadata": {
+        "description": "境界のある陳腐化の最大間隔（秒）"
+      }
+    }
+  },
+  "variables": {
+    "consistencyPolicy": {
+      "Strong": {
+        "defaultConsistencyLevel": "Strong"
+      },
+      "Session": {
+        "defaultConsistencyLevel": "Session"
+      },
+      "BoundedStaleness": {
+        "defaultConsistencyLevel": "BoundedStaleness",
+        "maxStalenessPrefix": "[parameters('maxStalenessPrefix')]",
+        "maxIntervalInSeconds": "[parameters('maxIntervalInSeconds')]"
+      },
+      "ConsistentPrefix": {
+        "defaultConsistencyLevel": "ConsistentPrefix"
+      },
+      "Eventual": {
+        "defaultConsistencyLevel": "Eventual"
+      }
+    },
+    "locations": [
+      {
+        "locationName": "[parameters('location')]",
+        "failoverPriority": 0,
+        "isZoneRedundant": false
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2023-04-15",
+      "name": "[parameters('cosmosAccountName')]",
+      "location": "[parameters('location')]",
+      "kind": "GlobalDocumentDB",
+      "properties": {
+        "consistencyPolicy": "[variables('consistencyPolicy')[parameters('consistencyLevel')]]",
+        "locations": "[variables('locations')]",
+        "databaseAccountOfferType": "Standard",
+        "enableAutomaticFailover": "[parameters('enableAutomaticFailover')]",
+        "enableMultipleWriteLocations": "[parameters('enableMultipleWriteLocations')]",
+        "capabilities": "[if(equals(parameters('capacityMode'), 'Serverless'), createArray(createObject('name', 'EnableServerless')), createArray())]"
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+      "apiVersion": "2023-04-15",
+      "name": "[format('{0}/{1}', parameters('cosmosAccountName'), parameters('databaseName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosAccountName'))]"
+      ],
+      "properties": {
+        "resource": {
+          "id": "[parameters('databaseName')]"
+        },
+        "options": "[if(equals(parameters('capacityMode'), 'Provisioned'), createObject('throughput', parameters('throughput')), createObject())]"
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+      "apiVersion": "2023-04-15",
+      "name": "[format('{0}/{1}/{2}', parameters('cosmosAccountName'), parameters('databaseName'), parameters('conversationsContainerName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('cosmosAccountName'), parameters('databaseName'))]"
+      ],
+      "properties": {
+        "resource": {
+          "id": "[parameters('conversationsContainerName')]",
+          "partitionKey": {
+            "paths": [
+              "/tenantId"
+            ],
+            "kind": "Hash"
+          },
+          "indexingPolicy": {
+            "indexingMode": "consistent",
+            "includedPaths": [
+              {
+                "path": "/*"
+              }
+            ],
+            "excludedPaths": [
+              {
+                "path": "/metrics/*"
+              },
+              {
+                "path": "/_etag/?"
+              }
+            ],
+            "compositeIndexes": [
+              [
+                {
+                  "path": "/tenantId",
+                  "order": "ascending"
+                },
+                {
+                  "path": "/timeline/lastMessageAt",
+                  "order": "descending"
+                }
+              ]
+            ]
+          }
+        },
+        "options": "[if(equals(parameters('capacityMode'), 'Provisioned'), createObject('throughput', div(parameters('throughput'), 2)), createObject())]"
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+      "apiVersion": "2023-04-15",
+      "name": "[format('{0}/{1}/{2}', parameters('cosmosAccountName'), parameters('databaseName'), parameters('messagesContainerName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('cosmosAccountName'), parameters('databaseName'))]"
+      ],
+      "properties": {
+        "resource": {
+          "id": "[parameters('messagesContainerName')]",
+          "partitionKey": {
+            "paths": [
+              "/conversationId"
+            ],
+            "kind": "Hash"
+          },
+          "indexingPolicy": {
+            "indexingMode": "consistent",
+            "includedPaths": [
+              {
+                "path": "/*"
+              }
+            ],
+            "excludedPaths": [
+              {
+                "path": "/content/originalText/?"
+              },
+              {
+                "path": "/metadata/duration/?"
+              },
+              {
+                "path": "/metadata/tokens/?"
+              },
+              {
+                "path": "/metadata/extractedEntities/*"
+              }
+            ],
+            "compositeIndexes": [
+              [
+                {
+                  "path": "/conversationId",
+                  "order": "ascending"
+                },
+                {
+                  "path": "/sequenceNumber",
+                  "order": "ascending"
+                }
+              ]
+            ]
+          }
+        },
+        "options": "[if(equals(parameters('capacityMode'), 'Provisioned'), createObject('throughput', div(parameters('throughput'), 2)), createObject())]"
+      }
+    }
+  ],
+  "outputs": {
+    "cosmosAccountName": {
+      "type": "string",
+      "value": "[parameters('cosmosAccountName')]"
+    },
+    "cosmosAccountId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosAccountName'))]"
+    },
+    "cosmosEndpoint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosAccountName'))).documentEndpoint]"
+    },
+    "databaseName": {
+      "type": "string",
+      "value": "[parameters('databaseName')]"
+    },
+    "conversationsContainerName": {
+      "type": "string",
+      "value": "[parameters('conversationsContainerName')]"
+    },
+    "messagesContainerName": {
+      "type": "string",
+      "value": "[parameters('messagesContainerName')]"
+    },
+    "primaryKey": {
+      "type": "string",
+      "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosAccountName')), '2023-04-15').primaryMasterKey]"
+    },
+    "connectionString": {
+      "type": "string",
+      "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosAccountName')), '2023-04-15').connectionStrings[0].connectionString]"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "session_info": {
+    "id": "6d248776",
+    "title": "チャットセッション",
+    "mode": "reasoning",
+    "created_at": "2025-07-20T18:33:58.748129",
+    "updated_at": "2025-07-20T18:34:18.891916",
+    "message_count": 2
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "にちは！",
+      "timestamp": "2025-07-20T18:34:12.639235",
+      "metadata": {}
+    },
+    {
+      "role": "assistant",
+      "content": "こんにちは！  \nご挨拶ありがとうございます。今日はどのようなお手伝いをいたしましょうか？",
+      "timestamp": "2025-07-20T18:34:18.891904",
+      "metadata": {
+        "mode": "reasoning",
+        "effort": "low",
+        "duration": 6.252212285995483
+      }
+    }
+  ]
+}

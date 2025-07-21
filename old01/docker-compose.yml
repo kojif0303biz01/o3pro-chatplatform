@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+    env_file:
+      - .env
+      - .env.cosmos
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+      - ./core:/app/core
+      - ./handlers:/app/handlers
+      - ./cosmos_history:/app/cosmos_history
+    command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - o3pro-network
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_WS_URL=ws://localhost:8000
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages:/app/packages
+      - /app/apps/web/node_modules
+    command: npm run dev
+    depends_on:
+      - api
+    networks:
+      - o3pro-network
+
+networks:
+  o3pro-network:
+    driver: bridge

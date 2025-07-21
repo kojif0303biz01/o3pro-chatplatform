@@ -1,0 +1,60 @@
+{
+  "session_info": {
+    "id": "13387a82",
+    "title": "チャットセッション",
+    "mode": "reasoning",
+    "created_at": "2025-07-20T16:25:51.109990",
+    "updated_at": "2025-07-20T16:27:15.947303",
+    "message_count": 6
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "こんにちは",
+      "timestamp": "2025-07-20T16:26:19.218602",
+      "metadata": {}
+    },
+    {
+      "role": "assistant",
+      "content": "こんにちは！ご用件をお聞かせください。",
+      "timestamp": "2025-07-20T16:26:26.562954",
+      "metadata": {
+        "mode": "reasoning",
+        "effort": "low",
+        "duration": 7.34389328956604
+      }
+    },
+    {
+      "role": "user",
+      "content": "こんばんは",
+      "timestamp": "2025-07-20T16:26:56.672178",
+      "metadata": {}
+    },
+    {
+      "role": "assistant",
+      "content": "こんばんは！ご挨拶ありがとうございます。  \n本日はいかがなさいますか？何かお手伝いできることがあればお気軽にお知らせください。",
+      "timestamp": "2025-07-20T16:27:03.440318",
+      "metadata": {
+        "mode": "reasoning",
+        "effort": "low",
+        "duration": 6.76766300201416
+      }
+    },
+    {
+      "role": "user",
+      "content": "あなたは誰？",
+      "timestamp": "2025-07-20T16:27:08.854335",
+      "metadata": {}
+    },
+    {
+      "role": "assistant",
+      "content": "私は ChatGPT、OpenAI が開発した対話型の AI です。質問や相談、アイデア出しなど、幅広いトピックでお手伝いします。お気軽にどうぞ！",
+      "timestamp": "2025-07-20T16:27:15.947291",
+      "metadata": {
+        "mode": "reasoning",
+        "effort": "low",
+        "duration": 7.092455625534058
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "session_info": {
+    "id": "f495cdf8",
+    "title": "チャットセッション",
+    "mode": "reasoning",
+    "created_at": "2025-07-20T18:33:16.525273",
+    "updated_at": "2025-07-20T18:33:21.090189",
+    "message_count": 2
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "1+1は何ですか？",
+      "timestamp": "2025-07-20T18:33:16.525668",
+      "metadata": {}
+    },
+    {
+      "role": "assistant",
+      "content": "1 + 1 は 2 です。",
+      "timestamp": "2025-07-20T18:33:21.090177",
+      "metadata": {
+        "mode": "reasoning",
+        "effort": "low",
+        "duration": 4.540874242782593
+      }
+    }
+  ]
+}
